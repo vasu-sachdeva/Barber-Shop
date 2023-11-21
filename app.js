@@ -607,6 +607,8 @@ app.post("/orderEditbyBarber",function(req,res){
 });
 
 
-app.listen(3000, function () {
-  console.log("Running on port 3000");
+const port = parseInt(process.env.PORT, 10) || 3001;
+
+app.listen(port, function () {
+  console.log(`Running on port ${port}`);
 });
