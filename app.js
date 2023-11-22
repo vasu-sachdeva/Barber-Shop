@@ -95,7 +95,7 @@ app.post("/abcd",function(req,res){
     res.send('newbarb');
   }
   else{
-    con.query("INSERT Into customers values ('"+num+"');",function(err,res1){
+    con.query("INSERT Into Customers values ('"+num+"');",function(err,res1){
       if(!err || err.code == 'ER_DUP_ENTRY'){
         sess.type = 'cust';
         res.send('cust');
@@ -126,8 +126,8 @@ app.get("/newbarb", function (req, res) {
 app.get("/bookapp", function (req, res) {
   sess = req.session;
   if(sess.type=='cust'){
-    con.query("SELECT DISTINCT Services.serviceId,Services.serviceName, services.forGender, services.price FROM Services join materials join inventory WHERE forGender='F' and Services.serviceId=materials.serviceId and materials.itemId=inventory.itemId and inventory.qtyAvail>0;", function (err, result) {
-      con.query("SELECT DISTINCT Services.serviceId,Services.serviceName, services.forGender, services.price FROM Services join materials join inventory WHERE forGender='M' and Services.serviceId=materials.serviceId and materials.itemId=inventory.itemId and inventory.qtyAvail>0;", function (err, result1) {
+    con.query("SELECT DISTINCT Services.serviceId,Services.serviceName, Services.forGender, Services.price FROM Services join Materials join Inventory WHERE forGender='F' and Services.serviceId=Materials.serviceId and Materials.itemId=Inventory.itemId and Inventory.qtyAvail>0;", function (err, result) {
+      con.query("SELECT DISTINCT Services.serviceId,Services.serviceName, Services.forGender, Services.price FROM Services join Materials join Inventory WHERE forGender='M' and Services.serviceId=Materials.serviceId and Materials.itemId=Inventory.itemId and Inventory.qtyAvail>0;", function (err, result1) {
         console.log(result1);
         console.log(result);
         res.render("bookapp.ejs",{female:result,male:result1});
@@ -142,7 +142,7 @@ app.get("/bookapp", function (req, res) {
 app.post("/temptoday",function(req,res){
   var date = req.body.date;
   var gender = req.body.gender;
-  var sql = "SELECT startTime FROM appointments where date = '"+date+"' AND gender = '"+gender+"'";
+  var sql = "SELECT startTime FROM Appointments where date = '"+date+"' AND gender = '"+gender+"'";
   con.query(sql,function(err,res1){
     res.send(res1);
   });
@@ -161,13 +161,13 @@ app.post("/appbookedd", function (req, res) {
     tomorrow.setDate(tomorrow.getDate()+1);
     date = tomorrow.toDateString();
   }
-  var sql = "INSERT INTO `bshop`.`appointments` (`isPaid`,`mobNumber`,`gender`,`custName`,`date`,`startTime`) values (0,'"+sess.number+"','"+gender+"','"+name+"','"+date+"','"+time+"');"
+  var sql = "INSERT INTO Appointments (`isPaid`,`mobNumber`,`gender`,`custName`,`date`,`startTime`) values (0,'"+sess.number+"','"+gender+"','"+name+"','"+date+"','"+time+"');"
   con.query(sql,function(err,res1){
     if(!err){
-      con.query("SELECT appointmentId from appointments where startTime = '"+time+"' AND date = '"+date+"';",function(err1,res2){
+      con.query("SELECT appointmentId from Appointments where startTime = '"+time+"' AND date = '"+date+"';",function(err1,res2){
         if(!err1){
           for(let i=0;i<services.length;i++){
-            con.query("INSERT INTO `bshop`.`appointmentservices` (`appointmentId`, `serviceId`) VALUES ("+res2[0].appointmentId+","+services[i]+" );",function(err2,res3){
+            con.query("INSERT INTO AppointmentServices (`appointmentId`, `serviceId`) VALUES ("+res2[0].appointmentId+","+services[i]+" );",function(err2,res3){
               if(!err2){
                 
               }
@@ -187,7 +187,7 @@ app.get("/custApp",function(req,res){
   sess = req.session;
   if(sess.type=='cust'){
     con.query(
-      "select appointments.date, appointments.appointmentId, appointments.custName, customers.mobNumber, services.serviceName, appointments.startTime, services.price, appointments.isPaid from customers join appointments on customers.mobNumber = appointments.mobNumber join appointmentservices on appointments.appointmentId = appointmentservices.appointmentId join services on appointmentservices.serviceId = services.serviceId where customers.mobNumber = '"+ sess.number +"' Order by appointments.startTime ASC;",
+      "select Appointments.date, Appointments.appointmentId, Appointments.custName, Customers.mobNumber, Services.serviceName, Appointments.startTime, Services.price, Appointments.isPaid from Customers join Appointments on Customers.mobNumber = Appointments.mobNumber join AppointmentServices on Appointments.appointmentId = AppointmentServices.appointmentId join Services on AppointmentServices.serviceId = Services.serviceId where Customers.mobNumber = '"+ sess.number +"' Order by Appointments.startTime ASC;",
       function (err, result) {
         res.render("custApp", { tables: result });
       }
@@ -217,7 +217,7 @@ app.post("/orderForm",(req, res) => {
   console.log(qty);
   var date = new Date().toDateString();
   var time = new Date().toLocaleTimeString('en-US');
-  con.query("INSERT INTO `bshop`.`orders` (`orderDate`, `orderTime`, `mobNumber`, `product`, `customerName`,`qty`, `orderStatus`) VALUES ('"+date+"','"+time+"','"+sess.number+"','"+productName+"','"+name+"',"+qty+", 'Pending');",function(err,res1){
+  con.query("INSERT INTO Orders (`orderDate`, `orderTime`, `mobNumber`, `product`, `customerName`,`qty`, `orderStatus`) VALUES ('"+date+"','"+time+"','"+sess.number+"','"+productName+"','"+name+"',"+qty+", 'Pending');",function(err,res1){
     if(!err){
       res.redirect("custOrders");
     }
@@ -247,7 +247,7 @@ app.get('/block', function(req,res){
 app.post("/blocknum",function(req,res){
   const number = req.body.mnum;
   const reason = req.body.reason;
-  con.query("INSERT INTO `bshop`.`blocklist` (`mobNumber`, `reason`) VALUES ('"+number+"','"+reason+"');",function(err,res1){
+  con.query("INSERT INTO blocklist (`mobNumber`, `reason`) VALUES ('"+number+"','"+reason+"');",function(err,res1){
     if(!err){
       res.redirect("barb");
     }
@@ -285,7 +285,7 @@ app.post("/unblock",function(req,res){
 app.get("/appointments", function (req, res) {
   sess = req.session;
   if(sess.type=='barb'){
-    con.query("select appointments.appointmentId, appointments.date, appointments.custName, customers.mobNumber, services.serviceName, appointments.startTime, services.price, appointments.isPaid from customers join appointments on customers.mobNumber = appointments.mobNumber join appointmentservices on appointments.appointmentId = appointmentservices.appointmentId join services on appointmentservices.serviceId = services.serviceId where appointments.isPaid=0 Order by appointments.startTime ASC;",
+    con.query("select Appointments.appointmentId, Appointments.date, Appointments.custName, Customers.mobNumber, Services.serviceName, Appointments.startTime, Services.price, Appointments.isPaid from Customers join Appointments on Customers.mobNumber = Appointments.mobNumber join AppointmentServices on Appointments.appointmentId = Appointmentservices.appointmentId join Services on AppointmentServices.serviceId = Services.ServiceId where Appointments.isPaid=0 Order by Appointments.startTime ASC;",
       function (err, result) {
         res.render("appointments.ejs", { tables: result });
       }
@@ -309,8 +309,8 @@ app.get("/inventory", function (req, res) {
 app.get("/manageService",function(req,res){
   sess = req.session;
   if(sess.type=='barb'){
-    con.query("SELECT * FROM services where serviceStatus = 'Active' ORDER BY forGender ASC;",function(err,res1){
-      con.query("SELECT * FROM inventory",function(err1,res2){
+    con.query("SELECT * FROM Services where serviceStatus = 'Active' ORDER BY forGender ASC;",function(err,res1){
+      con.query("SELECT * FROM Inventory",function(err1,res2){
         res.render("manageService",{tables:res1,tables1:res2});
       })
     });
@@ -324,7 +324,7 @@ app.post("/serviceEdit",function(req,res){
   const serviceName = arr.fname;
   const forGender = arr.lname;
   const price = arr.email;
-  con.query("UPDATE `bshop`.`services` SET `serviceName` = '"+serviceName+"',`forGender` = '"+forGender+"', `price` = "+price+" WHERE `serviceId` = "+arr.id+";",function(err,res1){
+  con.query("UPDATE Services SET `serviceName` = '"+serviceName+"',`forGender` = '"+forGender+"', `price` = "+price+" WHERE `serviceId` = "+arr.id+";",function(err,res1){
     if(!err) res.send('done');
     else console.log(err);
   })
@@ -335,7 +335,7 @@ app.post("/serviceInsert",function(req,res){
   const serviceName = arr.name;
   const forGender = arr.forGender;
   const price = arr.price;
-  con.query("INSERT INTO `bshop`.`services` (`serviceName`, `forGender`, `price`,`serviceStatus`) VALUES ('"+serviceName+"','"+forGender+"',"+price+",'Active');",function(err,res1){
+  con.query("INSERT INTO Services (`serviceName`, `forGender`, `price`,`serviceStatus`) VALUES ('"+serviceName+"','"+forGender+"',"+price+",'Active');",function(err,res1){
     if(!err) res.send('done');
     else console.log(err);
   })
@@ -345,7 +345,7 @@ app.post("/inventoryEdit",function(req,res){
   const arr = req.body.arr;
   const itemName = arr.name;
   const qty = arr.qty;
-  con.query("UPDATE `bshop`.`inventory` SET `itemName` = '"+itemName+"',`qtyAvail` = "+qty+" WHERE `itemId` = "+arr.id+";",function(err,res1){
+  con.query("UPDATE Inventory SET `itemName` = '"+itemName+"',`qtyAvail` = "+qty+" WHERE `itemId` = "+arr.id+";",function(err,res1){
     if(!err) res.send('done');
     else console.log(err);
   })
@@ -356,7 +356,7 @@ app.post("/itemInsert",function(req,res){
   const arr = req.body.arr;
   const itemName = arr.name;
   const qty = arr.qty;
-  con.query("INSERT INTO `bshop`.`inventory` (`itemName`, `qtyAvail`) VALUES ('"+itemName+"',"+qty+");",function(err,res1){
+  con.query("INSERT INTO Inventory (`itemName`, `qtyAvail`) VALUES ('"+itemName+"',"+qty+");",function(err,res1){
     if(!err) res.send('done');
     else console.log(err);
   })
@@ -405,7 +405,7 @@ app.post("/mapItems", (req, res) => {
 app.get("/map",function(req,res){
   sess = req.session;
   if(sess.type=='barb'){
-    con.query("SELECT * from inventory where itemStatus = 'Active';",function(err,res1){
+    con.query("SELECT * from Inventory where itemStatus = 'Active';",function(err,res1){
     if(!err){
     console.log(name);
       res.render("mapItemForm",{tables:res1,name:name});}
@@ -420,7 +420,7 @@ app.get("/map",function(req,res){
 
 app.post("/submitItemForm",function(req,res){
   const items = req.body.items;
-  var sql = "insert into materials values ("+sId+","+items[0]+")";
+  var sql = "insert into Materials values ("+sId+","+items[0]+")";
   for(let i=1;i<items.length;i++){
     sql+=",("+sId+","+items[i]+")";
   }
@@ -439,8 +439,8 @@ app.get("/deleteAppointment/:proId", (req, res) => {
   sess = req.session;
   if(sess.type=='cust'){
     const proId = req.params.proId;
-    let sql = `DELETE from appointmentservices where appointmentId = ${proId}`;
-    let sql1 = `DELETE from appointments where appointmentId = ${proId}`;
+    let sql = `DELETE from AppointmentServices where appointmentId = ${proId}`;
+    let sql1 = `DELETE from Appointments where appointmentId = ${proId}`;
     con.query(sql,function(err,res1){
       if(!err){
         con.query(sql1,function(err1,res2){
@@ -465,7 +465,7 @@ app.get("/deleteAppointment/:proId", (req, res) => {
 
 app.post('/completeApp',function(req,res){
   //console.log(req.body.appId);
-  con.query("UPDATE `bshop`.`appointments` SET `isPaid` = 1 WHERE `appointmentId` ="+req.body.appId+";",function(err,res1){
+  con.query("UPDATE Appointments SET `isPaid` = 1 WHERE `appointmentId` ="+req.body.appId+";",function(err,res1){
     if(!err) res.send('done');
     else console.log(err);
   })
@@ -479,13 +479,12 @@ app.get("/orders",function(req,res){
   else{
     res.redirect("/login");
   }
-  
 });
 
 app.post("/pending",function(req,res){
   sess = req.session;
   if(sess.type=='cust'){
-    con.query("select * from orders where orderStatus = 'Pending' and mobNumber='"+sess.number+"';",function(err,res1){
+    con.query("select * from Orders where orderStatus = 'Pending' and mobNumber='"+sess.number+"';",function(err,res1){
       if(!err)
         res.send(res1);
       else
@@ -493,7 +492,7 @@ app.post("/pending",function(req,res){
     })
   }
   else if(sess.type=='barb'){
-    con.query("select * from orders where orderStatus = 'Pending';",function(err,res1){
+    con.query("select * from Orders where orderStatus = 'Pending';",function(err,res1){
       if(!err)
         res.send(res1);
       else
@@ -506,7 +505,7 @@ app.post("/pending",function(req,res){
 app.post("/approved",function(req,res){
   sess = req.session;
   if(sess.type=='cust'){
-    con.query("select * from orders where orderStatus = 'Approved' and mobNumber='"+sess.number+"';",function(err,res1){
+    con.query("select * from Orders where orderStatus = 'Approved' and mobNumber='"+sess.number+"';",function(err,res1){
       if(!err)
         res.send(res1);
       else
@@ -514,7 +513,7 @@ app.post("/approved",function(req,res){
     })
   }
   else if(sess.type=='barb'){
-    con.query("select * from orders where orderStatus = 'Approved';",function(err,res1){
+    con.query("select * from Orders where orderStatus = 'Approved';",function(err,res1){
       if(!err)
         res.send(res1);
       else
@@ -526,7 +525,7 @@ app.post("/approved",function(req,res){
 app.post("/declined",function(req,res){
   sess = req.session;
   if(sess.type=='cust'){
-    con.query("select * from orders where orderStatus = 'Declined' and mobNumber='"+sess.number+"';",function(err,res1){
+    con.query("select * from Orders where orderStatus = 'Declined' and mobNumber='"+sess.number+"';",function(err,res1){
       if(!err)
         res.send(res1);
       else
@@ -534,7 +533,7 @@ app.post("/declined",function(req,res){
     })
   }
   else if(sess.type=='barb'){
-    con.query("select * from orders where orderStatus = 'Declined';",function(err,res1){
+    con.query("select * from Orders where orderStatus = 'Declined';",function(err,res1){
       if(!err)
         res.send(res1);
       else
@@ -546,7 +545,7 @@ app.post("/declined",function(req,res){
 app.post("/completed",function(req,res){
   sess = req.session;
   if(sess.type=='cust'){
-    con.query("select * from orders where orderStatus = 'Completed' and mobNumber='"+sess.number+"';",function(err,res1){
+    con.query("select * from Orders where orderStatus = 'Completed' and mobNumber='"+sess.number+"';",function(err,res1){
       if(!err)
         res.send(res1);
       else
@@ -554,7 +553,7 @@ app.post("/completed",function(req,res){
     })
   }
   else if(sess.type=='barb'){
-    con.query("select * from orders where orderStatus = 'Completed';",function(err,res1){
+    con.query("select * from Orders where orderStatus = 'Completed';",function(err,res1){
       if(!err)
         res.send(res1);
       else
@@ -565,7 +564,7 @@ app.post("/completed",function(req,res){
 
 app.post('/tempcancelOrder',function(req,res){
   const orderId = req.body.orderId;
-  con.query("UPDATE `bshop`.`orders` SET `orderStatus` = 'Declined' WHERE `orderId` = "+orderId+";",function(err,res1){
+  con.query("UPDATE Orders SET `orderStatus` = 'Declined' WHERE `orderId` = "+orderId+";",function(err,res1){
     if(!err){
       res.send('done');
     }
@@ -575,7 +574,7 @@ app.post('/tempcancelOrder',function(req,res){
 
 app.post('/tempapproveOrder',function(req,res){
   const orderId = req.body.orderId;
-  con.query("UPDATE `bshop`.`orders` SET `orderStatus` = 'Approved' WHERE `orderId` = "+orderId+";",function(err,res1){
+  con.query("UPDATE Orders SET `orderStatus` = 'Approved' WHERE `orderId` = "+orderId+";",function(err,res1){
     if(!err){
       res.send('done');
     }
@@ -586,7 +585,7 @@ app.post('/tempapproveOrder',function(req,res){
 
 app.post('/tempcompleteOrder',function(req,res){
   const orderId = req.body.orderId;
-  con.query("UPDATE `bshop`.`orders` SET `orderStatus` = 'Completed' WHERE `orderId` = "+orderId+";",function(err,res1){
+  con.query("UPDATE Orders SET `orderStatus` = 'Completed' WHERE `orderId` = "+orderId+";",function(err,res1){
     if(!err){
       res.send('done');
     }
@@ -599,7 +598,7 @@ app.post("/orderEditbyBarber",function(req,res){
   const arr = req.body.arr;
   const amt = arr.amt;
   const deliveryDate = arr.date;
-  con.query("UPDATE `bshop`.`orders` SET `amount` = "+amt+",`deliveryDate` = '"+deliveryDate+"' WHERE `orderId` = "+arr.orderId+";",function(err,res1){
+  con.query("UPDATE Orders SET `amount` = "+amt+",`deliveryDate` = '"+deliveryDate+"' WHERE `orderId` = "+arr.orderId+";",function(err,res1){
     if(!err)
       res.send('done');
     else
