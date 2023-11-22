@@ -23,6 +23,7 @@ var con = mysql.createConnection({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  port: parseInt(process.env.DB_PORT),
 });
 
 con.connect(function (err) {
@@ -123,8 +124,8 @@ app.get("/newbarb", function (req, res) {
 });
 
 app.get("/bookapp", function (req, res) {
-  // sess = req.session;
-  // if(sess.type=='cust'){
+  sess = req.session;
+  if(sess.type=='cust'){
     con.query("SELECT DISTINCT Services.serviceId,Services.serviceName, services.forGender, services.price FROM Services join materials join inventory WHERE forGender='F' and Services.serviceId=materials.serviceId and materials.itemId=inventory.itemId and inventory.qtyAvail>0;", function (err, result) {
       con.query("SELECT DISTINCT Services.serviceId,Services.serviceName, services.forGender, services.price FROM Services join materials join inventory WHERE forGender='M' and Services.serviceId=materials.serviceId and materials.itemId=inventory.itemId and inventory.qtyAvail>0;", function (err, result1) {
         console.log(result1);
@@ -132,10 +133,10 @@ app.get("/bookapp", function (req, res) {
         res.render("bookapp.ejs",{female:result,male:result1});
       });
     });
-  // }
-  // else{
-    // res.redirect('login');
-  // }
+  }
+  else{
+    res.redirect('login');
+  }
 });
 
 app.post("/temptoday",function(req,res){

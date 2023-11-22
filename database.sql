@@ -12,7 +12,7 @@ create table AppointmentServices (appointmentId int, serviceId int, foreign key(
 create table blocklist ( mobNumber varchar(20), reason varchar(100));
 
 
-INSERT INTO `bshop`.`inventory`
+INSERT INTO Inventory
 (`itemName`,
 `qtyAvail`,`itemStatus`)
 VALUES
@@ -23,7 +23,7 @@ VALUES
 ('Disposable Brushes',10,'Active'),
 ('Hair Dye',10,'Active');
 
-INSERT INTO `bshop`.`services`
+INSERT INTO Services
 (`serviceName`,
 `forGender`,
 `price`, `serviceStatus`)
@@ -35,7 +35,7 @@ VALUES
 ('Beard Trimming/Shaving','M',60,'Active')
 ;
 
-INSERT INTO `bshop`.`materials`
+INSERT INTO Materials
 (`serviceId`,
 `itemId`)
 VALUES
@@ -46,15 +46,7 @@ VALUES
 (4,4);
 
 
-create trigger inventoryadd
-after insert
-on appointmentservices
-for each row
-update Inventory,materials,appointmentservices
-set inventory.qtyAvail=inventory.qtyAvail -1
-where appointmentservices.appointmentId = new.appointmentId
-and materials.serviceId = appointmentservices.serviceId
-and inventory.itemId = materials.itemId;
+create trigger inventoryadd after insert on appointmentservices for each row update Inventory,materials,appointmentservices set inventory.qtyAvail=inventory.qtyAvail -1 where appointmentservices.appointmentId = new.appointmentId and materials.serviceId = appointmentservices.serviceId and inventory.itemId = materials.itemId;
 
 
 create trigger inventorydel
