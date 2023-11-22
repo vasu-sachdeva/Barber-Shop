@@ -285,7 +285,7 @@ app.post("/unblock",function(req,res){
 app.get("/appointments", function (req, res) {
   sess = req.session;
   if(sess.type=='barb'){
-    con.query("select Appointments.appointmentId, Appointments.date, Appointments.custName, Customers.mobNumber, Services.serviceName, Appointments.startTime, Services.price, Appointments.isPaid from Customers join Appointments on Customers.mobNumber = Appointments.mobNumber join AppointmentServices on Appointments.appointmentId = Appointmentservices.appointmentId join Services on AppointmentServices.serviceId = Services.ServiceId where Appointments.isPaid=0 Order by Appointments.startTime ASC;",
+    con.query("select Appointments.appointmentId, Appointments.date, Appointments.custName, Customers.mobNumber, Services.serviceName, Appointments.startTime, Services.price, Appointments.isPaid from Customers join Appointments on Customers.mobNumber = Appointments.mobNumber join AppointmentServices on Appointments.appointmentId = AppointmentServices.appointmentId join Services on AppointmentServices.serviceId = Services.ServiceId where Appointments.isPaid=0 Order by Appointments.startTime ASC;",
       function (err, result) {
         res.render("appointments.ejs", { tables: result });
       }
